@@ -1,0 +1,231 @@
+import random
+import math
+from random import randint
+
+# alterar para um modo mais eficiente posteriormente (trabalhos futuros)
+
+# Teorema de fermat para saber se o número é primo
+
+
+def e_prime(num, test_count):
+    if num == 1:
+        return False
+    if test_count >= num:
+        test_count = num - 1
+    for x in range(test_count):
+        val = randint(1, num - 1)
+        if pow(val, num-1, num) != 1:
+            return False
+    return True
+
+# Gerando número primo enorme.
+
+
+def generate_big_prime(n):
+    found_prime = False
+    while not found_prime:
+        p = randint(2**(n-1), 2**n)
+        if e_prime(p, 80):
+            return p
+
+# usado para verificar a primaridade quando a opções manual é ativada, lógica mais simples que com números pequenos funciona muito bem.
+
+
+def verificaPrimaridade(n):  # check if the number is prime
+    if (n <= 1):
+        return False
+    if (n <= 3):
+        return True
+
+    if (n % 2 == 0 or n % 3 == 0):
+        return False
+
+    i = 5
+    while(i * i <= n):
+        if (n % i == 0 or n % (i+2) == 0):
+            return False
+        i += 6
+    return True
+
+
+def totient(p, q):
+    tot = (p-1)*(q-1)
+    return tot
+
+
+def inverso_multiplicativo(e, tot):
+    d = 0
+    x1 = 0
+    x2 = 1
+    y1 = 1
+    temp_tot = tot
+
+    while e > 0:
+        temp1 = temp_tot/e
+        temp2 = temp_tot - temp1 * e
+        temp_tot = e
+        e = temp2
+
+        x = x2 - temp1 * x1
+        y = d - temp1 * y1
+
+        x2 = x1
+        x1 = x
+        d = y1
+        y1 = y
+
+    if temp_tot == 1:
+        return d + tot
+
+
+def calculate_private_key(e, toti):
+    d = 0
+    while(((d*e) % toti) != 1):
+        d += 1
+    return d
+
+
+def avaliarPrimaridadeEGerarTupla(tot, n):
+
+    # Choose an integer e such that e and tot(n) are coprime
+    e = random.randrange(1, tot)
+    d = e
+    while e == d:
+        # Use Euclid's Algorithm to verify that e and tot(n) are comprime
+        g = math.gcd(e, tot)
+        while g != 1:
+            e = random.randrange(1, tot)
+            g = math.gcd(e, tot)
+
+        # Use Extended Euclid's Algorithm to generate the private key
+        d = calculate_private_key(e, tot)  # multiplicative_inverse(e, tot)
+
+        # Return public and private keypair
+        # Public key is (e, n) and private key is (d, n)
+    return ((e, n), (d, n))
+
+
+def encriptaTexto(word, chave):  # get the words and compute the cipher
+    e, n = chave
+    tam = len(word)
+    i = 0
+    textocriptografado = []
+    while(i < tam):
+        letter = word[i]
+        k = ord(letter)
+        k = k**e
+        d = k % n
+        textocriptografado.append(chr(d))
+        i += 1
+    return textocriptografado
+
+
+def decripta(cifra, chave):
+    d, n = chave
+    i = 0
+    tamanho = len(cifra)
+    textoOriginal = ""
+    # texto=cifra ^ d mod n
+    while i < tamanho:
+        result = ord(cifra[i])**d
+        texto = result % n
+        letra = chr(texto)
+        textoOriginal += str(letra)
+        i += 1
+    return textoOriginal
+
+
+def apresentarTexto(texto):
+    tamanho = len(texto)
+    textoCript = ""
+    i = 0
+    while i < tamanho:
+        textoCript += str(texto[i])
+        i += 1
+    return textoCript
+
+
+if __name__ == '__main__':
+    modo = 1
+    while modo >= 1:
+        print("---------------------------------------------------------------")
+        print("Autor: Vinícius de Andrade Barros RA: 082150366 Turma: EC-10")
+        print("---------------------------------------------------------------\n")
+        print("Escolha um modo do RSA \n --> 1 para gerar as chaves automaticamente. \n --> 2 para que elas sejam inseridas manualmente:")
+        try:
+            modo = int(input())
+            # MODO de rsa automático
+            if(modo == 1):
+                print("Quantos bits você deseja?")
+                bits = int(input())
+                print("\n Gerando números aleatórios de " +
+                      str(bits) + " bits ....")
+                p = generate_big_prime(bits)
+                q = generate_big_prime(bits)
+
+                print("\n p: " + str(p))
+                print("\n q: " + str(q))
+
+                print("Realizando cálculos ....")
+                print(
+                    "Enquanto aguarda...Não prefere ir tomar um cafézinho? Sabe... Pode demorar um pouco.... ;) \n")
+                n = p*q
+                tot = totient(p, q)
+                publica, privada = avaliarPrimaridadeEGerarTupla(tot, n)
+                print("\n Digite um texto para ser criptografado: ")
+                texto = input()
+                print(
+                    "A criptografia também demora um pouco.... Talvez devesse tomar outro cafézinho.....\n")
+                print("Dizem que o café ajuda a fortalecer a memória, fortalece o coração e acelera o metabolismo... Só estou dizendo... :)")
+
+                textoCriptografado = apresentarTexto(
+                    encriptaTexto(texto, publica))
+                textoOriginal = decripta(textoCriptografado, privada)
+
+                print('\n Totiente: ' + str(tot))
+                print('\n Chave pública: ' + str(publica))
+                print('\n Chave privada '+str(privada))
+                print("\n Texto criptografado:")
+                print(textoCriptografado)
+                print("\n Texto Decriptografado:")
+                print(textoOriginal)
+
+                # Modo RSA manual
+            elif (modo == 2):
+                print("Digite um valor de p: ")
+                p = int(input())
+                if (verificaPrimaridade(p)):
+                    print("Digite um valor de q: ")
+                    q = int(input())
+                    if (verificaPrimaridade(q)):
+                        n = p * q
+                        tot = totient(p, q)
+                        publica, privada = avaliarPrimaridadeEGerarTupla(
+                            tot, n)
+                        print('Totiente ' + str(tot))
+                        print('Chave pública: ' + str(publica))
+                        print('Chave privada '+str(privada))
+
+                        print("Digite um texto para ser criptografado")
+                        texto = input()
+                        textoCriptografado = apresentarTexto(
+                            encriptaTexto(texto, publica))
+                        textoOriginal = decripta(textoCriptografado, privada)
+                        print("Texto criptografado:")
+                        print(textoCriptografado)
+                        print("\n Texto Decriptografado:")
+                        print(textoOriginal)
+                    else:
+                        print(
+                            "Foi digitado um valor não primo. Verifique o valor de Q digitado e tente novamente")
+                else:
+                    print(
+                        "Foi digitado um valor não primo. Verifique o valor de Q digitado e tente novamente")
+
+                print("Caso deseje sair, pressione 0")
+            if(modo == 0):
+                print(
+                    "Obrigado!")
+        except:
+            print(
+                "Foi digitado um valor não esperado. Verifique os valores digitados e tente novamente")
