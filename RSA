@@ -150,6 +150,8 @@ if __name__ == '__main__':
     while modo >= 1:
         print("---------------------------------------------------------------")
         print("Autor: Vinícius de Andrade Barros RA: 082150366 Turma: EC-10")
+        print("Autor: Armando Bandeira RA: 082150057")
+        print("Autor: Doriedson RA: 082150114")
         print("---------------------------------------------------------------\n")
         print("Escolha um modo do RSA \n --> 1 para gerar as chaves automaticamente. \n --> 2 para que elas sejam inseridas manualmente:")
         try:
